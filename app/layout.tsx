@@ -1,19 +1,20 @@
-import './globals.css';
-import type { Metadata, Viewport } from 'next';
-import { Manrope } from 'next/font/google';
-import { UserProvider } from '@/lib/auth';
-import { getUser } from '@/lib/db/queries';
+import "./globals.css";
+import type { Metadata, Viewport } from "next";
+import { Manrope } from "next/font/google";
+import { UserProvider } from "@/lib/auth";
+import { getUser } from "@/lib/db/queries";
 
 export const metadata: Metadata = {
-  title: 'Next.js SaaS Starter',
-  description: 'Get started quickly with Next.js, Postgres, and Stripe.',
+  title: "Level Up AI Skills",
+  description:
+    "Practical AI training for professionals who want to stay relevant in a fast-changing world.",
 };
 
 export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-const manrope = Manrope({ subsets: ['latin'] });
+const manrope = Manrope({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,
