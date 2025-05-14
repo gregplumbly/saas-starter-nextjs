@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { use, useState, Suspense } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CircleIcon, Home, LogOut } from "lucide-react";
 import {
@@ -13,7 +14,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/lib/auth";
 import { signOut } from "@/app/(login)/actions";
-import { useRouter } from "next/navigation";
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,17 +29,17 @@ function UserMenu() {
 
   if (!user) {
     return (
-      <>
+      <div className="flex items-center space-x-4">
         <Link
           href="/pricing"
-          className="text-sm font-medium text-gray-700 hover:text-gray-900"
+          className="text-sm font-medium text-gray-200 hover:text-white"
         >
           Pricing
         </Link>
         <Button asChild className="rounded-full">
           <Link href="/sign-up">Sign Up</Link>
         </Button>
-      </>
+      </div>
     );
   }
 
@@ -76,30 +76,42 @@ function UserMenu() {
   );
 }
 
-function Header() {
+export function MainNav() {
+  const pathname = usePathname();
+  
+  const isActive = (path: string) => {
+    return pathname === path || pathname?.startsWith(`${path}/`);
+  };
+  
   return (
-    <header className="border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center">
-          <CircleIcon className="h-6 w-6 text-orange-500" />
-          <span className="ml-2 text-xl font-semibold text-gray-900">
-            LEVEL UP AI SKILLS
-          </span>
-        </Link>
-        <div className="flex items-center space-x-4">
-          <Suspense fallback={<div className="h-9" />}>
-            <UserMenu />
-          </Suspense>
+    <nav className="bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center">
+          <Link href="/" className="text-xl font-bold text-orange-500 flex items-center">
+            <CircleIcon className="h-6 w-6 mr-2" />
+            Level Up AI Skills
+          </Link>
+          
+          <div className="flex space-x-6 ml-10">
+            <Link 
+              href="/" 
+              className={`hover:text-orange-400 transition-colors ${isActive('/') && !isActive('/blog') ? 'text-orange-500' : ''}`}
+            >
+              Home
+            </Link>
+            <Link 
+              href="/blog" 
+              className={`hover:text-orange-400 transition-colors ${isActive('/blog') ? 'text-orange-500' : ''}`}
+            >
+              Blog
+            </Link>
+          </div>
         </div>
+        
+        <Suspense fallback={<div className="h-9" />}>
+          <UserMenu />
+        </Suspense>
       </div>
-    </header>
-  );
-}
-
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <section className="flex flex-col min-h-screen">
-      {children}
-    </section>
+    </nav>
   );
 }
