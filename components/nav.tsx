@@ -105,6 +105,12 @@ export function MainNav() {
             >
               Blog
             </Link>
+            <Link 
+              href="/contact" 
+              className={`hover:text-orange-400 transition-colors ${isActive('/contact') ? 'text-orange-500' : ''}`}
+            >
+              Contact
+            </Link>
           </div>
         </div>
         

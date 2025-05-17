@@ -4,6 +4,8 @@ import { Manrope } from "next/font/google";
 import { UserProvider } from "@/lib/auth";
 import { getUser } from "@/lib/db/queries";
 import { MainNav } from "@/components/nav";
+import Footer from '@/components/Footer';
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Level Up AI Skills",
@@ -29,10 +31,14 @@ export default function RootLayout({
       lang="en"
       className={`bg-white dark:bg-gray-950 text-black dark:text-white ${manrope.className}`}
     >
-      <body className="min-h-[100dvh] bg-gray-50">
+      <body className="flex flex-col min-h-[100dvh] bg-gray-50">
         <UserProvider userPromise={userPromise}>
           <MainNav />
-          {children}
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
         </UserProvider>
       </body>
     </html>

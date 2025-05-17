@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
   integer,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -128,6 +129,19 @@ export type TeamDataWithMembers = Team & {
   })[];
 };
 
+export const contacts = pgTable('contacts', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  message: text('message').notNull(),
+  subject: varchar('subject', { length: 255 }),
+  isRead: boolean('is_read').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Contact = typeof contacts.$inferSelect;
+export type NewContact = typeof contacts.$inferInsert;
+
 export enum ActivityType {
   SIGN_UP = 'SIGN_UP',
   SIGN_IN = 'SIGN_IN',
@@ -139,4 +153,5 @@ export enum ActivityType {
   REMOVE_TEAM_MEMBER = 'REMOVE_TEAM_MEMBER',
   INVITE_TEAM_MEMBER = 'INVITE_TEAM_MEMBER',
   ACCEPT_INVITATION = 'ACCEPT_INVITATION',
+  CONTACT_FORM_SUBMISSION = 'CONTACT_FORM_SUBMISSION',
 }
