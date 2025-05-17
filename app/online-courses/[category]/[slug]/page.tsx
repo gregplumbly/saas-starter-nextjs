@@ -5,11 +5,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata, ResolvingMetadata } from 'next';
 
-// In Next.js 16, params is an async property
-type PageProps = {
-  params: Promise<{ slug: string }>;
-}
-
 // Define the structure of your course data
 interface CourseData {
   title: string;
@@ -25,9 +20,11 @@ interface CourseData {
     _key: string;
     title: string;
     slug: { current: string };
-    // Add other lesson fields if needed for display
   }>;
-  // Add other fields as necessary
+  categories: Array<{
+    title: string;
+    slug: { current: string };
+  }>;
 }
 
 async function getCourse(slug: string): Promise<CourseData | null> {
@@ -36,6 +33,7 @@ async function getCourse(slug: string): Promise<CourseData | null> {
     slug,
     image,
     details,
+    "categories": categories[]->{ title, slug },
     teacher->{
       name,
       image,
@@ -46,35 +44,62 @@ async function getCourse(slug: string): Promise<CourseData | null> {
       title,
       slug
     }
-    // Fetch other fields as needed
   }`;
   const course = await client.fetch(query, { slug });
   return course;
 }
 
-// Generate static paths for each course
+// Define types for generateStaticParams
+interface CourseWithCategories {
+  slug: string;
+  categories: string[];
+}
+
+// Generate static paths for each course with its category
 export async function generateStaticParams() {
-  const courses = await client.fetch<Array<{ current: string }>>(`*[_type == "course" && defined(slug.current)].slug`);
-  // Return params in the format expected by Next.js 16
-  return courses.map((slugObj) => ({ slug: slugObj.current }));
+  const query = `*[_type == "course" && defined(slug.current) && count(categories) > 0] {
+    "slug": slug.current,
+    "categories": categories[]->slug.current
+  }`;
+  
+  const courses = await client.fetch<CourseWithCategories[]>(query);
+  
+  // Create params for each course under each of its categories
+  const params: Array<{category: string, slug: string}> = [];
+  
+  courses.forEach((course: CourseWithCategories) => {
+    // If a course has multiple categories, create a path for each category
+    if (course.categories && course.categories.length > 0) {
+      course.categories.forEach((categorySlug: string) => {
+        params.push({
+          category: categorySlug,
+          slug: course.slug
+        });
+      });
+    } else {
+      // Fallback to "uncategorized" if no categories (optional)
+      params.push({
+        category: "uncategorized",
+        slug: course.slug
+      });
+    }
+  });
+  
+  return params;
 }
 
 // Generate metadata for the page
 export async function generateMetadata(
-  { params }: { params: Promise<{ slug: string }> },
+  { params }: { params: { category: string, slug: string } },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const resolvedParams = await params;
-  const course = await getCourse(resolvedParams.slug);
+  const course = await getCourse(params.slug);
 
   if (!course) {
     return {
       title: 'Course Not Found',
     };
   }
-
-  // Optionally, access existing metadata from parent
-  // const previousImages = (await parent).openGraph?.images || [];
 
   return {
     title: `${course.title} | Level Up AI Skills`,
@@ -87,12 +112,21 @@ export async function generateMetadata(
   };
 }
 
-export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const course = await getCourse(resolvedParams.slug);
+export default async function CoursePage({ params }: { params: { category: string, slug: string } }) {
+  const course = await getCourse(params.slug);
 
   if (!course) {
     notFound(); // Triggers 404 page
+  }
+
+  // Verify that this course belongs to the specified category
+  const belongsToCategory = course.categories?.some(
+    category => category.slug.current === params.category
+  );
+
+  if (!belongsToCategory) {
+    // Either redirect to the correct category or show 404
+    notFound();
   }
 
   const portableTextComponents = {
@@ -102,14 +136,17 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
           <Image src={urlFor(value).url()} alt={value.alt || course.title} fill className="object-contain" />
         </div>
       ),
-      // You can add custom components for other block types here
     },
-    // Custom marks, blocks, lists etc. can be defined here
   };
 
   return (
     <article>
       <header className="mb-8">
+        <div className="mb-4">
+          <Link href={`/online-courses/${params.category}`} className="text-blue-600 hover:underline">
+            ← Back to {params.category.charAt(0).toUpperCase() + params.category.slice(1)} Courses
+          </Link>
+        </div>
         <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
         {course.image && (
           <div className="relative w-full h-96 overflow-hidden rounded-lg shadow-lg mb-6">
@@ -118,7 +155,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
               alt={course.title}
               fill
               className="object-cover"
-              priority // Good for LCP
+              priority
             />
           </div>
         )}
@@ -157,17 +194,30 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </section>
           )}
 
+          {course.categories && course.categories.length > 0 && (
+            <section className="bg-gray-50 p-6 rounded-lg shadow">
+              <h3 className="text-xl font-semibold mb-4">Categories</h3>
+              <div className="flex flex-wrap gap-2">
+                {course.categories.map((category) => (
+                  <Link 
+                    key={category.slug.current}
+                    href={`/online-courses/${category.slug.current}`}
+                    className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-sm transition-colors"
+                  >
+                    {category.title}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
           {course.lessons && course.lessons.length > 0 && (
             <section className="bg-gray-50 p-6 rounded-lg shadow">
               <h3 className="text-xl font-semibold mb-4">Lessons in this Course</h3>
               <ul className="space-y-2">
                 {course.lessons.map((lesson) => (
                   <li key={lesson._key} className="p-3 bg-white rounded shadow-sm hover:shadow-md transition-shadow">
-                    {/* For now, just display title. Later, this could be a link to the lesson page */}
                     <span className="text-gray-800">{lesson.title}</span>
-                    {/* <Link href={`/online-courses/${course.slug.current}/lessons/${lesson.slug.current}`}>
-                      <a className="text-blue-600 hover:underline">{lesson.title}</a>
-                    </Link> */}
                   </li>
                 ))}
               </ul>
