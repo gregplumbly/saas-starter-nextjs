@@ -4,8 +4,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
 // Generate metadata dynamically based on category
-export async function generateMetadata({ params }: { params: { category: string } }) {
-  const category = await getCategory(params.category);
+export async function generateMetadata({ params }: { params: Promise<{ category: string }> }) {
+  const resolvedParams = await params;
+  const category = await getCategory(resolvedParams.category);
   
   if (!category) {
     return {
@@ -58,14 +59,15 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function CategoryPage({ params }: { params: { category: string } }) {
-  const category = await getCategory(params.category);
+export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  const resolvedParams = await params;
+  const category = await getCategory(resolvedParams.category);
   
   if (!category) {
     notFound();
   }
   
-  const courses = await getCoursesByCategory(params.category);
+  const courses = await getCoursesByCategory(resolvedParams.category);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -86,7 +88,7 @@ export default async function CategoryPage({ params }: { params: { category: str
             <div key={course.slug.current} className="course-card-wrapper">
               <CourseCard 
                 course={course}
-                linkPrefix={`/online-courses/${params.category}`}
+                linkPrefix={`/online-courses/${resolvedParams.category}`}
               />
             </div>
           ))}

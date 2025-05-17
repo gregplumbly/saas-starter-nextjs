@@ -90,10 +90,11 @@ export async function generateStaticParams() {
 
 // Generate metadata for the page
 export async function generateMetadata(
-  { params }: { params: { category: string, slug: string } },
+  { params }: { params: Promise<{ category: string, slug: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const course = await getCourse(params.slug);
+  const resolvedParams = await params;
+  const course = await getCourse(resolvedParams.slug);
 
   if (!course) {
     return {
@@ -112,8 +113,9 @@ export async function generateMetadata(
   };
 }
 
-export default async function CoursePage({ params }: { params: { category: string, slug: string } }) {
-  const course = await getCourse(params.slug);
+export default async function CoursePage({ params }: { params: Promise<{ category: string, slug: string }> }) {
+  const resolvedParams = await params;
+  const course = await getCourse(resolvedParams.slug);
 
   if (!course) {
     notFound(); // Triggers 404 page
@@ -121,7 +123,7 @@ export default async function CoursePage({ params }: { params: { category: strin
 
   // Verify that this course belongs to the specified category
   const belongsToCategory = course.categories?.some(
-    category => category.slug.current === params.category
+    category => category.slug.current === resolvedParams.category
   );
 
   if (!belongsToCategory) {
@@ -143,8 +145,8 @@ export default async function CoursePage({ params }: { params: { category: strin
     <article>
       <header className="mb-8">
         <div className="mb-4">
-          <Link href={`/online-courses/${params.category}`} className="text-blue-600 hover:underline">
-            ← Back to {params.category.charAt(0).toUpperCase() + params.category.slice(1)} Courses
+          <Link href={`/online-courses/${resolvedParams.category}`} className="text-blue-600 hover:underline">
+            ← Back to {resolvedParams.category.charAt(0).toUpperCase() + resolvedParams.category.slice(1)} Courses
           </Link>
         </div>
         <h1 className="text-4xl font-bold mb-4">{course.title}</h1>

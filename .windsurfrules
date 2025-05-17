@@ -1,0 +1,9 @@
+this app uses nextjs 15.3.1 with typescript
+this app uses sanity for content management
+this app uses postgresql for database
+this app uses drizzle for database schema
+this app uses tailwindcss for styling
+this app uses stripe for payments
+this app uses react-hook-form for forms
+this app uses zod for validation
+this app uses sonner for notifications
