@@ -1,4 +1,4 @@
-import { defineType, defineField } from 'sanity';
+import { defineType, defineField, Rule } from 'sanity';
 
 export const courseType = defineType({
   name: 'course',
@@ -53,7 +53,7 @@ export const courseType = defineType({
       name: 'price',
       title: 'Price (USD)',
       type: 'number',
-      hidden: ({ document }) => !document?.isPaid,
+      hidden: ({ document }: { document: Record<string, any> }) => !document?.isPaid,
     }),
     defineField({
       name: 'lessons',
@@ -91,7 +91,7 @@ export const courseType = defineType({
       media: 'image',
       paid: 'isPaid',
     },
-    prepare({ title, teacher, media, paid }) {
+    prepare({ title, teacher, media, paid }: { title: string; teacher: string; media: any; paid: boolean }) {
       return {
         title,
         subtitle: `${teacher ? `by ${teacher}` : ''} ${paid ? '(Paid)' : '(Free)'}`,
