@@ -5,8 +5,8 @@ import imageUrlBuilder from "@sanity/image-url";
 // You'll get these values when you create your project on sanity.io
 export const config = {
   projectId: "v4szcru5", // replace with your project ID
-  dataset: "production",
-  apiVersion: "2023-05-03", // use the latest API version
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
+  apiVersion: "2025-05-03", // use the latest API version
   useCdn: process.env.NODE_ENV === "production",
 };
 
