@@ -23,8 +23,8 @@ export default function CourseCard({ course }: CourseCardProps) {
             <Image
               src={urlFor(course.image).width(400).height(300).url()}
               alt={course.title}
-              layout="fill"
-              objectFit="cover"
+              fill
+              className="object-cover" // Handles object-fit
             />
           )}
         </div>
