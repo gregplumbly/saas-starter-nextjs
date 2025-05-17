@@ -25,6 +25,7 @@ const iconMap: Record<ActivityType, LucideIcon> = {
   [ActivityType.REMOVE_TEAM_MEMBER]: UserMinus,
   [ActivityType.INVITE_TEAM_MEMBER]: Mail,
   [ActivityType.ACCEPT_INVITATION]: CheckCircle,
+  [ActivityType.CONTACT_FORM_SUBMISSION]: Mail,
 };
 
 function getRelativeTime(date: Date) {
@@ -63,6 +64,8 @@ function formatAction(action: ActivityType): string {
       return 'You invited a team member';
     case ActivityType.ACCEPT_INVITATION:
       return 'You accepted an invitation';
+    case ActivityType.CONTACT_FORM_SUBMISSION:
+      return 'You received a contact form submission';
     default:
       return 'Unknown action occurred';
   }

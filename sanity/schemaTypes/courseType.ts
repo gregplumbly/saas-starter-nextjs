@@ -53,7 +53,7 @@ export const courseType = defineType({
       name: 'price',
       title: 'Price (USD)',
       type: 'number',
-      hidden: ({ document }: { document: Record<string, any> }) => !document?.isPaid,
+      hidden: ({ document }) => !document?.isPaid,
     }),
     defineField({
       name: 'lessons',
@@ -91,7 +91,8 @@ export const courseType = defineType({
       media: 'image',
       paid: 'isPaid',
     },
-    prepare({ title, teacher, media, paid }: { title: string; teacher: string; media: any; paid: boolean }) {
+    prepare(selection) {
+      const {title, teacher, media, paid} = selection;
       return {
         title,
         subtitle: `${teacher ? `by ${teacher}` : ''} ${paid ? '(Paid)' : '(Free)'}`,

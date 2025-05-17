@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata, ResolvingMetadata } from 'next';
 
-interface PageProps {
-  params: { slug: string };
+// In Next.js 16, params is an async property
+type PageProps = {
+  params: Promise<{ slug: string }>;
 }
 
 // Define the structure of your course data
@@ -54,15 +55,17 @@ async function getCourse(slug: string): Promise<CourseData | null> {
 // Generate static paths for each course
 export async function generateStaticParams() {
   const courses = await client.fetch<Array<{ current: string }>>(`*[_type == "course" && defined(slug.current)].slug`);
+  // Return params in the format expected by Next.js 16
   return courses.map((slugObj) => ({ slug: slugObj.current }));
 }
 
 // Generate metadata for the page
 export async function generateMetadata(
-  { params }: PageProps,
+  { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const course = await getCourse(params.slug);
+  const resolvedParams = await params;
+  const course = await getCourse(resolvedParams.slug);
 
   if (!course) {
     return {
@@ -84,8 +87,9 @@ export async function generateMetadata(
   };
 }
 
-export default async function CoursePage({ params }: PageProps) {
-  const course = await getCourse(params.slug);
+export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const course = await getCourse(resolvedParams.slug);
 
   if (!course) {
     notFound(); // Triggers 404 page
